@@ -1,0 +1,48 @@
+Background: 
+  Prime LMS creates rotating backups but does not have a built-in
+  mechanism for storing those backups on a different appliance/server
+
+  This script determines what backups exists, which ones have been 
+  bundled up (tarred and gzipped), and copies them to the remote server
+  via SFTP.
+
+Requirements:
+  1.  Password free mechanism for LMS appliance to connect to remote server
+  2.  Remote backup server has to manage the number of backups it keeps
+
+Behaviours:
+  1.  Uses tar and gzip.
+  2.  Relies on Prime LMS cron to execute the export job.
+  3.  "LOCAL_LMS_EXPIRE_AGE" value affects the search for local backup tar 
+      files based on age.  The defaults in the script assume a daily backup
+      and keeping 7 days worth of tar files on the appliance.  
+
+INSTALLATION STEPS
+  1.  Place the export-lms-backups.sh and export-lms-backups.cfg files in 
+      /opt/LMSbackup directory (need to shell to the root prompt on the
+      appliance)
+  2.  Modify the export-lms-backups.cfg file accordingly
+  3.  Modify the crontab entry for the user 'casuser'.  You must do this AFTER
+      setting up the backup job within the LMS application. The command to 
+      do this is: 
+         crontab -u casuser -e
+      NOTE:  the default editor is "vi", a Linux editor.  If you don't know
+      how to use 'vi', Google it.  It's not intuitive to a non-Linux user.
+
+      Copy the contents of export-lms-backups.crontab file (modified for the
+      timing of your backup job) into the casuser crontab.  I would schedule
+      the export-lms-backups.sh job 2 or 3 hours after your LMS backup job.
+      Here is (snipped) version of our crontab:
+
+         0 14 * * * /opt/CSCOpx/bin/perl /opt/CSCOpx/bin/backup.pl ......
+         0 16 * * * /bin/bash /opt/LMSbackup/export-lms-backups.sh
+
+      We scheduled our daily backup at 2pm so that the backups could be done
+      in time for nightly jobs to run.  The LMS database needs to be relatively
+      unused in order for backups to finish as well.
+
+  4.  You can manually test the export-lms-backup.sh script by simply running
+      it by hand at the command line:  
+         bash /opt/LMSbackup/export-lms-backups.sh
+
+

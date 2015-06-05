@@ -1,0 +1,1 @@
+0 16 * * * /bin/bash /opt/LMSbackup/lms.backup.sh
